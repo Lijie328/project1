@@ -1,4 +1,4 @@
-.<template>
+<template>
 <div>
   <h3>app第一个</h3>
 </div>
