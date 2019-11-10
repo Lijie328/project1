@@ -47,7 +47,7 @@
           <span>江苏传智播客教育科技股份有限公司</span>
         </div>
         <div id="rt">
-          <el-input type="text" placeholder="请输入搜索的文章内容">
+          <el-input type="text" placeholder="请输入搜索的文章内容" v-model="input">
             <i slot="prefix" class="el-input__icon el-icon-search"></i>
           </el-input>
           <span style="margin:0 10px;">消息</span>
@@ -76,7 +76,8 @@
 export default {
   data () {
     return {
-      isCollapse: false
+      isCollapse: false,
+      input: ''
     }
   },
   computed: {
