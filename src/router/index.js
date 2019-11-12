@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import Login from '../views/login/index.vue'
 import Home from '../views/home/index.vue'
 import Welcom from '../views/home/welcome/index.vue'
+import Article from '../views/article/index.vue'
 
 Vue.use(VueRouter)
 
@@ -16,7 +17,8 @@ const routes = [
     redirect: '/welcome', // 路由重定向
     children: [
       // 欢迎页面子路由配置
-      { path: '/welcome', name: 'welcome', component: Welcom }
+      { path: '/welcome', name: 'welcome', component: Welcom },
+      { path: '/article', name: 'article', component: Article }
     ]
   }
 
