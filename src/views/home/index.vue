@@ -18,10 +18,10 @@
             <span slot="title">内容管理</span>
           </template>
           <el-menu-item-group>
-            <el-menu-item index="2-1">发布文章</el-menu-item>
+            <el-menu-item index="/articleadd">发布文章</el-menu-item>
             <el-menu-item  index="/article">内容列表</el-menu-item>
             <el-menu-item index="2-3">评论列表</el-menu-item>
-            <el-menu-item index="2-4">素材管理</el-menu-item>
+            <el-menu-item index="/material">素材管理</el-menu-item>
           </el-menu-item-group>
         </el-submenu>
         <el-menu-item index="3" :style=" {width :isCollapse?'65px':'200px' }">
@@ -29,7 +29,7 @@
           <span slot="title">粉丝管理</span>
         </el-menu-item>
 
-        <el-menu-item index="4" :style=" {width :isCollapse?'65px':'200px' }">
+        <el-menu-item index="/account" :style=" {width :isCollapse?'65px':'200px' }">
           <i class="el-icon-location"></i>
           <span slot="title">账户信息</span>
         </el-menu-item>
@@ -74,19 +74,42 @@
 </template>
 
 <script>
+import bus from '@/utils/bus.js'
 export default {
   data () {
     return {
+      tmpname: '', // 临时账户名称
+      tmpphoto: '', // 临时账户头像
       isCollapse: false,
       input: ''
     }
   },
+  created () {
+    // 1. 对  名称  进行更新
+    bus.$on('upAccountName', nm => {
+      // 更新sessionStorage中name的信息
+      let userinfo = JSON.parse(window.sessionStorage.getItem('userinfo'))
+      userinfo.name = nm
+      window.sessionStorage.setItem('userinfo', JSON.stringify(userinfo))
+      // 更新临时成员tmpname
+      this.tmpname = nm
+    })
+    // 2. 对  名称  进行更新
+    bus.$on('upAccountPhoto', ph => {
+      // 更新sessionStorage中photo的信息
+      let userinfo = JSON.parse(window.sessionStorage.getItem('userinfo'))
+      userinfo.photo = ph
+      window.sessionStorage.setItem('userinfo', JSON.stringify(userinfo))
+      // 更新临时成员tmpphoto
+      this.tmpphoto = ph
+    })
+  },
   computed: {
     name () {
-      return JSON.parse(window.sessionStorage.getItem('userinfo')).name
+      return this.tmpname || JSON.parse(window.sessionStorage.getItem('userinfo')).name
     },
     photo () {
-      return JSON.parse(window.sessionStorage.getItem('userinfo')).photo
+      return this.tmpphoto || JSON.parse(window.sessionStorage.getItem('userinfo')).photo
     }
   },
   methods: {

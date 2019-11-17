@@ -1,14 +1,26 @@
+// 引入Vue
 import Vue from 'vue'
+
 // 引入axios
 import axios from 'axios'
 
+// 引入路由模块
+import router from '@/router/index.js'
+
+// 引入json-bigint
+import JSONBig from 'json-bigint'
+
 // 公共根地址
 axios.defaults.baseURL = 'http://ttapi.research.itcast.cn/mp/v1_0/'
-// 请求拦截器
+
+// 配置请求拦截器
 axios.interceptors.request.use(function (config) {
   let userinfo = window.sessionStorage.getItem('userinfo')
+
   if (userinfo) {
-    config.headers.Authorization = 'Bearer ' + JSON.parse(userinfo).token
+    let token = JSON.parse(userinfo).token
+    // 给axios请求头配置token
+    config.headers.Authorization = 'Bearer ' + token
   }
 
   return config
@@ -16,7 +28,27 @@ axios.interceptors.request.use(function (config) {
   return Promise.reject(error)
 })
 
-// 把axios通过原型继承的方式配置给Vue，使得组件内部可以直接访问
-// 后期在组件内部就可以通过 this.$http 的方式获得axios对象
-// $http:就是自定义名称，可以为其他
+// 配置响应拦截器
+axios.interceptors.response.use(function (response) {
+  // 成功请求完毕
+  return response
+}, function (error) {
+  // 判断401出现
+  if (error.response.status === 401) {
+    // 强制用户登录
+
+    router.push('/login')
+  }
+  return Promise.reject(error)
+})
+
+// 响应原生数据转换器
+axios.defaults.transformResponse = [function (data) {
+  if (data) {
+    return JSONBig.parse(data)
+  } else {
+    return data
+  }
+}]
+
 Vue.prototype.$http = axios

@@ -4,7 +4,10 @@ import Login from '../views/login/index.vue'
 import Home from '../views/home/index.vue'
 import Welcom from '../views/home/welcome/index.vue'
 import Article from '../views/article/index.vue'
-
+import Articleadd from '../views/articleadd/index.vue'
+import Articleedit from '../views/articleedit/index.vue'
+import Account from '../views/account/account.vue'
+import Material from '../views/material/index.vue'
 Vue.use(VueRouter)
 
 const routes = [
@@ -18,10 +21,13 @@ const routes = [
     children: [
       // 欢迎页面子路由配置
       { path: '/welcome', name: 'welcome', component: Welcom },
-      { path: '/article', name: 'article', component: Article }
+      { path: '/material', name: 'material', component: Material },
+      { path: '/article', name: 'article', component: Article },
+      { path: '/articleadd', name: 'articleadd', component: Articleadd },
+      { path: '/articleedit/:aid', name: 'articleedit', component: Articleedit },
+      { path: '/account', name: 'account', component: Account }
     ]
   }
-
 ]
 
 const router = new VueRouter({

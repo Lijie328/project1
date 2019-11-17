@@ -8,22 +8,30 @@
       <div class="text item">
         <el-form ref="searchFormRef" :model="searchForm">
           <el-form-item label="文章状态:">
-            <el-radio v-model="searchForm.status" label>全部</el-radio>
-            <el-radio v-model="searchForm.status" label="0">草稿</el-radio>
-            <el-radio v-model="searchForm.status" label="1">待审核</el-radio>
-            <el-radio v-model="searchForm.status" label="2">审核通过</el-radio>
-            <el-radio v-model="searchForm.status" label="3">审核失败</el-radio>
-            <el-radio v-model="searchForm.status" label="4">已删除</el-radio>
+            <el-radio-group v-model="searchForm.status" @change="getArticleList()">
+              <el-radio v-model="searchForm.status" label>全部</el-radio>
+              <el-radio v-model="searchForm.status" label="0">草稿</el-radio>
+              <el-radio v-model="searchForm.status" label="1">待审核</el-radio>
+              <el-radio v-model="searchForm.status" label="2">审核通过</el-radio>
+              <el-radio v-model="searchForm.status" label="3">审核失败</el-radio>
+              <el-radio v-model="searchForm.status" label="4">已删除</el-radio>
+            </el-radio-group>
           </el-form-item>
           <el-form-item label="频道列表:">
-            <el-select v-model="searchForm.channel_id" placeholder="请选择" clearable>
+            <!-- <el-select
+              v-model="searchForm.channel_id"
+              placeholder="请选择"
+              clearable
+              @change="getArticleList()"
+            >
               <el-option
                 v-for="item in channelList"
                 :key="item.id"
                 :label="item.name"
                 :value="item.id"
               ></el-option>
-            </el-select>
+            </el-select> -->
+            <channel-com @slt="selectHandler"></channel-com>
           </el-form-item>
           <el-form-item label="时间选择:">
             <el-date-picker
@@ -58,18 +66,37 @@
           </el-table-column>
           <el-table-column label="发布时间" prop="pubdate" width="160px"></el-table-column>
           <el-table-column label="操作">
-            <el-button type="primary" size="mini">修改</el-button>
-            <el-button type="danger" size="mini ">删除</el-button>
+            <template slot-scope="stData">
+              <el-button type="primary" size="mini" @click="$router.push(`/articleedit/${stData.row.id}`)">修改</el-button>
+              <el-button type="danger" size="mini " @click="del(stData.row.id)">删除</el-button>
+            </template>
           </el-table-column>
         </el-table>
+      </div>
+    </el-card>
+    <el-card>
+      <div>
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="searchForm.page"
+          :page-sizes="[10, 15, 20, 40]"
+          :page-size="searchForm.per_page"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="tot"
+        ></el-pagination>
       </div>
     </el-card>
   </div>
 </template>
 
 <script>
+import ChannelCom from '@/components/channel.vue'
 export default {
   name: 'ArticleList',
+  components: {
+    ChannelCom
+  },
   data () {
     return {
       searchForm: {
@@ -80,12 +107,20 @@ export default {
         page: 1,
         per_page: 10
       },
-      channelList: [],
+      tot: 0,
+      // channelList: [],
       timetotime: [],
       articleList: []
     }
   },
+  // 监听器
   watch: {
+    searchForm: {
+      handler: function (newV, oldV) {
+        this.getArticleList()
+      },
+      deep: true
+    },
     timetotime (newval) {
       if (newval) {
         this.searchForm.begin_pubdate = newval[0]
@@ -94,32 +129,74 @@ export default {
         this.searchForm.begin_pubdate = ''
         this.searchForm.end_pubdate = ''
       }
+      this.getArticleList()
     }
   },
+  // 生命周期
   created () {
-    this.getChanneList()
+    // this.getChanneList()
     this.getArticleList()
   },
   methods: {
-    getChanneList () {
-      var pro = this.$http.get('/channels')
-      pro
-        .then(result => {
-          if (result.data.message === 'OK') {
-            this.channelList = result.data.data.channels
-          }
-        })
-        .catch(err => {
-          return this.$message.error('获得文章频道错误' + err)
-        })
+    selectHandler (val) {
+      this.searchForm.channel_id = val
     },
+    del (id) {
+      this.$confirm('确认要删除该数据么?', '删除', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          let pro = this.$http.delete(`/articles/${id}`)
+          pro
+            .then(result => {
+              this.$message.success('文章删除成功!')
+              // 更新删除的文章
+              this.getArticleList()
+            })
+            .catch(err => {
+              return this.$message.error('删除文章错误：' + err)
+            })
+        })
+        .catch(() => {})
+    },
+    handleSizeChange (val) {
+      console.log(val)
+      this.searchForm.per_page = val
+      this.getArticleList()
+    },
+    handleCurrentChange (val) {
+      // console.log(val)
+      this.searchForm.page = val
+      this.getArticleList()
+    },
+
+    // getChanneList () {
+    //   var pro = this.$http.get('/channels')
+    //   pro
+    //     .then(result => {
+    //       if (result.data.message === 'OK') {
+    //         this.channelList = result.data.data.channels
+    //       }
+    //     })
+    //     .catch(err => {
+    //       return this.$message.error('获得文章频道错误' + err)
+    //     })
+    // },
     getArticleList () {
-      let pro = this.$http.get('/articles')
+      let searchData = {}
+      for (var i in this.searchForm) {
+        if (this.searchForm[i] || this.searchForm[i] === 0) {
+          searchData[i] = this.searchForm[i]
+        }
+      }
+      let pro = this.$http.get('/articles', { params: searchData })
       pro
         .then(result => {
           if (result.data.message === 'OK') {
-            // 把文章赋予给articleList成员
             this.articleList = result.data.data.results
+            this.tot = result.data.data.total_count
           }
         })
         .catch(err => {
